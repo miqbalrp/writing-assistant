@@ -8,6 +8,106 @@ from pydantic import BaseModel, Field
 from typing import List, Optional, Tuple
 import difflib
 
+# Page configuration
+st.set_page_config(
+    page_title="AI Writing Assistant",
+    page_icon="✨",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
+
+# Custom CSS for professional styling
+st.markdown("""
+    <style>
+        /* Main page background and font */
+        .stApp {
+            font-family: 'Inter', sans-serif;
+        }
+        
+        [data-testid="stSidebar"] {
+            padding: 2rem 1rem;
+        }
+        
+        /* Headers */
+        h1, h2, h3, h4, h5, h6 {
+            font-weight: 600;
+        }
+        
+        /* Input fields */
+        .stTextInput input, .stTextArea textarea {
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        [data-testid="stTextArea"] textarea {
+            padding: 0.5rem;
+        }
+        
+        /* Buttons */
+        .stButton button {
+            font-weight: 500;
+            transition: transform 0.15s ease;
+            border-radius: 50px !important;
+        }
+        .stButton button:hover {
+            transform: translateY(-1px);
+        }
+        
+        /* Code blocks and output */
+        .stCodeBlock {
+            border-radius: 8px;
+        }
+        
+        /* Dark mode specific styles */
+        [data-theme="dark"] .main-title {
+            background: linear-gradient(120deg, #64b5f6, #2196f3);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        [data-theme="dark"] .subtitle {
+            color: rgba(250, 250, 250, 0.7);
+        }
+        
+        [data-theme="dark"] .stCodeBlock {
+            background: rgba(0, 0, 0, 0.2);
+        }
+        
+        /* Light mode specific styles */
+        [data-theme="light"] .main-title {
+            background: linear-gradient(120deg, #1e88e5, #005cb2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        [data-theme="light"] .subtitle {
+            color: rgba(49, 51, 63, 0.7);
+        }
+        
+        /* Comment box styling for both themes */
+        .comment-box {
+            border-radius: 8px;
+            padding: 1em 1.5em;
+            margin: 1em 0;
+        }
+        
+        [data-theme="dark"] .comment-box {
+            background: rgba(255, 255, 255, 0.05);
+            border-left: 4px solid #64b5f6;
+        }
+        
+        [data-theme="light"] .comment-box {
+            background: #f8f9fa;
+            border-left: 4px solid #1e88e5;
+        }
+        
+        /* Progress bar */
+        .stProgress > div > div {
+            background: linear-gradient(90deg, #1e88e5, #64b5f6);
+        }
+    </style>
+""", unsafe_allow_html=True)
+
 def create_colored_diff(old_text: str, new_text: str) -> str:
     """Create HTML diff with color coding for word-level changes."""
     def split_into_words(text):
