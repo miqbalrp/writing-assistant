@@ -43,6 +43,34 @@ st.markdown("""
             padding: 0.5rem;
         }
         
+        /* Loading spinner container */
+        .loading-container {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+        
+        /* Loading spinner animation */
+        .loading-spinner {
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(0, 0, 0, 0.1);
+            border-top: 3px solid #0066FF;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        [data-theme="dark"] .loading-spinner {
+            border: 3px solid rgba(255, 255, 255, 0.1);
+            border-top: 3px solid #3498db;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
         /* Buttons */
         .stButton button {
             font-weight: 500;
@@ -262,33 +290,48 @@ async def run_agent(agent, user_input: str):
     return result.final_output
 
 # Function to run agents asynchronously based on user selection
-async def process_text(text, selections, tone):
+async def process_text(text, selections, tone, progress_placeholder):
     current_text = text
     comments = []
+    
+    total_steps = len(selections)
+    current_step = 0
+    
     if "Fix grammar" in selections:
+        current_step += 1
+        progress_placeholder.markdown(f'<div class="loading-container"><div class="loading-spinner"></div><span> Step {current_step}/{total_steps}: Running Grammar Fixer...</span></div>', unsafe_allow_html=True)
         result = await run_agent(GrammarFixerAgent, current_text)
         current_text = result.edited_text
         if result.comments:
             comments.append(f"#### Grammar\n{result.comments}")
+    
     if "Improve clarity" in selections:
+        current_step += 1
+        progress_placeholder.markdown(f'<div class="loading-container"><div class="loading-spinner"></div><span> Step {current_step}/{total_steps}: Improving Clarity...</span></div>', unsafe_allow_html=True)
         result = await run_agent(ClarityImproverAgent, current_text)
         current_text = result.edited_text
         if result.comments:
             comments.append(f"#### Clarity\n{result.comments}")
+    
     if "Adjust tone" in selections:
+        current_step += 1
+        progress_placeholder.markdown(f'<div class="loading-container"><div class="loading-spinner"></div><span> Step {current_step}/{total_steps}: Adjusting Tone to {tone.title()}...</span></div>', unsafe_allow_html=True)
         ToneAdjusterAgent = get_tone_agent(tone)
         result = await run_agent(ToneAdjusterAgent, current_text)
         current_text = result.edited_text
         if result.comments:
             comments.append(f"#### Tone\n{result.comments}")
+    
+    progress_placeholder.markdown("""### ✅ **All done!** Here are your results:""", unsafe_allow_html=True)
     return current_text, "\n".join(comments)
 
 
 # --- Output Section ---
 if run_button:
     if text.strip():
-        with st.spinner("Processing..."):
-            final_text, all_comments = asyncio.run(process_text(text, selections, tone))        
+        # Create a placeholder for progress updates
+        progress_placeholder = st.empty()
+        final_text, all_comments = asyncio.run(process_text(text, selections, tone, progress_placeholder))        
         
         # Show improved text
         st.markdown("**✨ Improved Text**")
